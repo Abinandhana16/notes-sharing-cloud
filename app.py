@@ -1,24 +1,91 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, request, render_template_string
+import os
 
 app = Flask(__name__)
 
-# In-memory storage for notes
-# In a real-world app, you would use a database like PostgreSQL or MongoDB
 notes = []
+
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cloud Notes App</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            margin: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        input {
+            width: 70%;
+            padding: 10px;
+            margin: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #f1f1f1;
+            margin: 5px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>☁️ Cloud Notes App</h2>
+
+    <form method="post">
+        <input type="text" name="note" placeholder="Enter your note" required>
+        <br>
+        <button type="submit">Add Note</button>
+    </form>
+
+    <ul>
+    {% for n in notes %}
+        <li>{{n}}</li>
+    {% endfor %}
+    </ul>
+</div>
+
+</body>
+</html>
+"""
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
-        # Get note from form
-        note_content = request.form.get("note")
-        if note_content:
-            # Add note to the top of the list
-            notes.insert(0, note_content)
-        return redirect(url_for("index"))
-    
-    # Render the page with the list of notes
-    return render_template("index.html", notes=notes)
+        notes.append(request.form["note"])
+    return render_template_string(HTML, notes=notes)
 
 if __name__ == "__main__":
-    # Run the app locally for development
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
